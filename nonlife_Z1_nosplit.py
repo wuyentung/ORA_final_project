@@ -18,6 +18,7 @@ def make_dict(par, DMU=DMU):
     return made
 #%%
 X1 = make_dict((np.array(nonlife.iloc[[0]]).T + np.array(nonlife.iloc[[1]]).T).tolist())
+X2 = make_dict((((np.array(nonlife.iloc[[2]]).T + np.array(nonlife.iloc[[3]]).T + np.array(nonlife.iloc[[4]]).T))).tolist())
 X2_1 = make_dict((((np.array(nonlife.iloc[[2]]).T + np.array(nonlife.iloc[[3]]).T + np.array(nonlife.iloc[[4]]).T))/2).tolist())
 X2_2 = X2_1
 
@@ -38,7 +39,7 @@ val_p1,val_p2,val_p3,val_s1,val_s2={},{},{},{},{}
 slack_p1,slack_p2,slack_p3={},{},{}
 I = 3
 O = 2
-MID = 3
+MID = 2
 #%%
 for k in DMU:
     P1,P2,P3={},{},{}
@@ -61,11 +62,13 @@ for k in DMU:
     m.addConstr(
         v[0] * X1[k] + 
         v[1] * X2_1[k] + 
-        v[12 * X2_2[k] == 1
-        )
+        v[12 * X2_2[k] == 1)
 
+    m.addConstr((v[0] * X1[k] + v[1] * X2[k]) == 1)
     for j in DMU:
-        m.addConstr(u[0] * Y1[j] + u[1] * Y2 - (v[0] * X1[j] + v[1] * X2_1[j] + v[2] * X2_2[j]) <= 0)
-        P1[j] = m.addConstr(w[0] * Z1_1[j] + w[1] * Z1_2 - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
+        m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - (v[0] * X1[j] + v[1] * X2[j]) <= 0)
+        # (u1Y1j+u2Y2j)−(v1X1j+v2X2j)≤0  j=1,…,n
+        # w1Z1j−(v1X1j+v2X21j)≤0  j=1,…,n
+        P1[j] = m.addConstr(w[0] * Z1[j] - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
         P2[j] = m.addConstr(w[0] * Z1_1[j] - (v[0] * proc2x1[j]+v[1] * proc2x2[j])<=0)
         P3[j]=m.addConstr(u[2]*proc3TotyO[j]-(v[0]*proc3x1[j]+v[1]*proc3x2[j]+u[0]*proc1yI[j]+u[1]*proc2yI[j]) <= 0)
