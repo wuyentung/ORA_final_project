@@ -82,3 +82,24 @@ for k in DMU:
     print (slack_p3[k])
 
 #%%
+# import packages
+import numpy as np
+from pystoned import DEA
+from pystoned import dataset as dataset
+from pystoned.constant import RTS_VRS, ORIENT_IO, OPT_LOCAL, RTS_CRS
+#%%
+# import the data provided with Tim Coelli’s Frontier 4.1
+data = dataset.load_Tim_Coelli_frontier()
+#%%
+X = data.x
+# define and solve the DEA radial model
+model = DEA.DEA(data.y, np.array(data.x), rts=RTS_CRS, orient=ORIENT_IO, yref=None, xref=None)
+model.optimize(OPT_LOCAL)
+
+# display the technical efficiency
+model.display_theta()
+
+# display the intensity variables
+model.display_lamda()
+#%%
+#%%
