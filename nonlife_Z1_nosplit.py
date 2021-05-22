@@ -7,6 +7,9 @@ import pandas as pd
 nonlife = pd.read_excel("nonlife-insurance.xlsx", sheet_name="final_variables", index_col=0)
 #%%
 DMU = nonlife.columns
+DMU.remove("科法斯")
+DMU.remove("裕利安宜")
+DMU.remove("亞洲")
 #%%
 def make_dict(par, DMU=DMU):
     if len(par) != len(DMU):
@@ -37,20 +40,20 @@ if min(Y1.values()) < 0:
     for key, value in Y1.items():
         Y1[key] = value + mini
 #%%
-data = pd.DataFrame([X1, X2, X2_1, X2_2, Z1, Z1_1, Z1_2, Z2, Y1, Y2], index=["X1", "X2", "X2_1", "X2_2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"])
-#%%
-DMU=['A', 'B', 'C', 'D', 'E']
-#%%
-X1 = make_dict(par=[[1], [2], [3], [4], [5]])
-X2 = make_dict(par=[[4], [6], [8], [10], [12]])
-X2_1 = make_dict(par=[[2], [3], [4], [5], [6]])
-X2_2 = make_dict(par=[[2], [3], [4], [5], [6]])
-Z1 = make_dict(par=[[10], [20], [30], [4], [5]])
-Z1_1 = make_dict(par=[[1], [2], [3], [2], [2]])
-Z1_2 = make_dict(par=[[9], [18], [27], [2], [3]])
-Z2 = make_dict(par=[[12], [18], [27], [5], [4]])
-Y1 = make_dict(par=[[22], [30], [27], [8], [7]])
-Y2 = make_dict(par=[[20], [10], [57], [18], [17]])
+# data = pd.DataFrame([X1, X2, X2_1, X2_2, Z1, Z1_1, Z1_2, Z2, Y1, Y2], index=["X1", "X2", "X2_1", "X2_2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"])
+# #%%
+# DMU=['A', 'B', 'C', 'D', 'E']
+# #%%
+# X1 = make_dict(par=[[1], [2], [3], [4], [5]])
+# X2 = make_dict(par=[[4], [6], [8], [10], [12]])
+# X2_1 = make_dict(par=[[2], [3], [4], [5], [6]])
+# X2_2 = make_dict(par=[[2], [3], [4], [5], [6]])
+# Z1 = make_dict(par=[[10], [20], [30], [4], [5]])
+# Z1_1 = make_dict(par=[[1], [2], [3], [2], [2]])
+# Z1_2 = make_dict(par=[[9], [18], [27], [2], [3]])
+# Z2 = make_dict(par=[[12], [18], [27], [5], [4]])
+# Y1 = make_dict(par=[[22], [30], [27], [8], [7]])
+# Y2 = make_dict(par=[[20], [10], [57], [18], [17]])
 
 #%%
 E={}
@@ -97,8 +100,9 @@ for k in DMU:
         # u1Y1j+u2Y2j−(w1Z12j+w2Z2j)≤0  j=1,…,n
         P3[j] = m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - (w[0] * Z1_2[j] + w[1] * Z2[j]) <= 0)
 
-        
     m.optimize()
+    # m.write("temp.mst")
+    # break
     E[k]="\nThe efficiency of DMU %s:%4.4g"%(k,m.objVal)
 
     print("\n\n\n=====\n\n\n")
@@ -107,14 +111,25 @@ for k in DMU:
     v_sol = m.getAttr('x', v)
     w_sol = m.getAttr('x', w)
     
+    threshold = 0.0000001
+    # for i in range(I):
+    #     if v_sol[i] < threshold:
+    #         v_sol[i] = threshold
+    # for i in range(O):
+    #     if u_sol[i] < threshold:
+    #         u_sol[i] = threshold
+    # for i in range(MID):
+    #     if w_sol[i] < threshold:
+    #         w_sol[i] = threshold
+
     # 計算各process的效率值
-    e1 = w_sol[0] * Z1[k] / (v_sol[0] * X1[k] + v_sol[1] * X2_1[k]) 
-    e2 = w_sol[1] * Z2[k] / (v_sol[1] * X2_2[k] + w_sol[0] * Z1_1[k])
-    e3 = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k]) / (w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k])
+    e1 = w_sol[0] * Z1[k] / np.max([(v_sol[0] * X1[k] + v_sol[1] * X2_1[k]), threshold]) 
+    e2 = w_sol[1] * Z2[k] / np.max([(v_sol[1] * X2_2[k] + w_sol[0] * Z1_1[k]), threshold])
+    e3 = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k]) / np.max([(w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k]), threshold])
     
     # 計算各stage的效率值
-    stage1 = (w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k]) / (v_sol[0] * X1[k] + v_sol[1] * X2[k])
-    stage2 = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k]) / (w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k])
+    stage1 = (w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k]) / np.max([(v_sol[0] * X1[k] + v_sol[1] * X2[k]), threshold])
+    stage2 = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k]) / np.max([(w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k]), threshold])
 
     val_p1[k]='The efficiency of process 1 of DMU %s: %4.4g'%(k,e1)
     val_p2[k]='The efficiency of process 2 of DMU %s: %4.4g'%(k,e2)
@@ -129,7 +144,7 @@ for k in DMU:
     slack_p2[k]='The inefficiency of process 2 of DMU %s: %4.4g'%(k,process2_slack[k])
     process3_slack=m.getAttr('slack',P3)
     slack_p3[k]='The inefficiency of process 3 of DMU %s: %4.4g'%(k,process3_slack[k])
-
+    # break
 #%%
 for k in DMU:
     
