@@ -6,9 +6,9 @@ import pandas as pd
 #%%
 nonlife = pd.read_excel("nonlife-insurance.xlsx", sheet_name="final_variables", index_col=0)
 #%%
-DMU = nonlife.columns
-DMU.remove("科法斯")
-DMU.remove("裕利安宜")
+DMU = [dmu for dmu in nonlife.columns]
+# DMU.remove("科法斯")
+# DMU.remove("裕利安宜")
 DMU.remove("亞洲")
 #%%
 def make_dict(par, DMU=DMU):
@@ -21,6 +21,10 @@ def make_dict(par, DMU=DMU):
         # print(par[c][0])
         made[dmu] = par[c][0]
         c+=1
+    if min(made.values()) < 0:
+        mini = - min(made.values()) +1
+        for key, value in made.items():
+            made[key] = value + mini
     return made
 #%%
 X1 = make_dict((np.array(nonlife.iloc[[0]]).T + np.array(nonlife.iloc[[1]]).T).tolist())
@@ -35,10 +39,10 @@ Z2 = make_dict((np.array(nonlife.iloc[[8]]).T + np.array(nonlife.iloc[[9]]).T).t
 #%%
 Y1 = make_dict((np.array(nonlife.iloc[[11]]).T).tolist())
 Y2 = make_dict((np.array(nonlife.iloc[[10]]).T).tolist())
-if min(Y1.values()) < 0:
-    mini = - min(Y1.values())
-    for key, value in Y1.items():
-        Y1[key] = value + mini
+# if min(made.values()) < 0:
+#     mini = - min(made.values())
+#     for key, value in made.items():
+#         made[key] = value + mini
 #%%
 # data = pd.DataFrame([X1, X2, X2_1, X2_2, Z1, Z1_1, Z1_2, Z2, Y1, Y2], index=["X1", "X2", "X2_1", "X2_2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"])
 # #%%
