@@ -3,15 +3,19 @@ import gurobipy as gp
 import pandas as pd
 import numpy as np
 import pandas as pd
+from pandas._libs import indexing
 #%%
 nonlife = pd.read_excel("nonlife-insurance.xlsx", sheet_name="final_variables", index_col=0)
 #%%
 DMU = [dmu for dmu in nonlife.columns]
-# DMU.remove("科法斯")
-# DMU.remove("裕利安宜")
+DMU.remove("科法斯")
+DMU.remove("裕利安宜")
+DMU.remove("法國巴黎")
+DMU.remove("安達")
+DMU.remove("美國國際")
 DMU.remove("亞洲")
 #%%
-def make_dict(par, DMU=DMU):
+def make_dict(par, DMU=DMU, y=False):
     if len(par) != len(DMU):
         ValueError("shoule be same len")
     made = {}
@@ -22,7 +26,9 @@ def make_dict(par, DMU=DMU):
         made[dmu] = par[c][0]
         c+=1
     if min(made.values()) < 0:
-        mini = - min(made.values()) +1
+        mini = - min(made.values())
+        # if y:
+        #     mini -= 1
         for key, value in made.items():
             made[key] = value + mini
     return made
@@ -37,8 +43,8 @@ Z1_1 = make_dict((np.array(nonlife.iloc[[7]]).T).tolist())
 Z1_2 = make_dict((np.array(nonlife.iloc[[5]]).T + np.array(nonlife.iloc[[6]]).T - np.array(nonlife.iloc[[7]]).T).tolist())
 Z2 = make_dict((np.array(nonlife.iloc[[8]]).T + np.array(nonlife.iloc[[9]]).T).tolist())
 #%%
-Y1 = make_dict((np.array(nonlife.iloc[[11]]).T).tolist())
-Y2 = make_dict((np.array(nonlife.iloc[[10]]).T).tolist())
+Y1 = make_dict((np.array(nonlife.iloc[[11]]).T).tolist(), y=True)
+Y2 = make_dict((np.array(nonlife.iloc[[10]]).T).tolist(), y=True)
 # if min(made.values()) < 0:
 #     mini = - min(made.values())
 #     for key, value in made.items():
@@ -58,6 +64,7 @@ Y2 = make_dict((np.array(nonlife.iloc[[10]]).T).tolist())
 # Z2 = make_dict(par=[[12], [18], [27], [5], [4]])
 # Y1 = make_dict(par=[[22], [30], [27], [8], [7]])
 # Y2 = make_dict(par=[[20], [10], [57], [18], [17]])
+
 
 #%%
 E={}
@@ -107,7 +114,7 @@ for k in DMU:
     m.optimize()
     # m.write("temp.mst")
     # break
-    E[k]="\nThe efficiency of DMU %s:%4.4g"%(k,m.objVal)
+    E[k] = m.objVal
 
     print("\n\n\n=====\n\n\n")
 
@@ -135,39 +142,47 @@ for k in DMU:
     stage1 = (w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k]) / np.max([(v_sol[0] * X1[k] + v_sol[1] * X2[k]), threshold])
     stage2 = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k]) / np.max([(w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k]), threshold])
 
-    val_p1[k]='The efficiency of process 1 of DMU %s: %4.4g'%(k,e1)
-    val_p2[k]='The efficiency of process 2 of DMU %s: %4.4g'%(k,e2)
-    val_p3[k]='The efficiency of process 3 of DMU %s: %4.4g'%(k,e3)
-    val_s1[k]='The efficiency of stage 1 of DMU %s: %4.4g'%(k,stage1)
-    val_s2[k]='The efficiency of stage 2 of DMU %s: %4.4g'%(k,stage2)
+    val_p1[k] = e1
+    val_p2[k] = e2
+    val_p3[k] = e3
+    val_s1[k] = stage1
+    val_s2[k] = stage2
     
     #顯示各process的無效率值
     process1_slack=m.getAttr('slack',P1)
-    slack_p1[k]='The inefficiency of process 1 of DMU %s: %4.4g'%(k,process1_slack[k])
+    slack_p1[k] = process1_slack[k]
     process2_slack=m.getAttr('slack',P2)
-    slack_p2[k]='The inefficiency of process 2 of DMU %s: %4.4g'%(k,process2_slack[k])
+    slack_p2[k] = process2_slack[k]
     process3_slack=m.getAttr('slack',P3)
-    slack_p3[k]='The inefficiency of process 3 of DMU %s: %4.4g'%(k,process3_slack[k])
+    slack_p3[k] = process3_slack[k]
     # break
 #%%
 for k in DMU:
     
     print("\n\n=====\n\n")
-    print (E[k])
-    print (val_p1[k])
-    print (val_p2[k])
-    print (val_p3[k])
-    print (val_s1[k])
-    print (val_s2[k])
-    print (slack_p1[k])
-    print (slack_p2[k])
-    print (slack_p3[k])
+    print("\nThe efficiency of DMU %s:%4.4g"%(k,E[k]))
+    print ('The efficiency of process 1 of DMU %s: %4.4g'%(k,val_p1[k]))
+    print ('The efficiency of process 2 of DMU %s: %4.4g'%(k,val_p2[k]))
+    print ('The efficiency of process 3 of DMU %s: %4.4g'%(k,val_p3[k]))
+    print ('The efficiency of stage 1 of DMU %s: %4.4g'%(k,val_s1[k]))
+    print ('The efficiency of stage 2 of DMU %s: %4.4g'%(k,val_s2[k]))
+    print ('The inefficiency of process 1 of DMU %s: %4.4g'%(k,slack_p1[k]))
+    print ('The inefficiency of process 2 of DMU %s: %4.4g'%(k,slack_p2[k]))
+    print ('The inefficiency of process 3 of DMU %s: %4.4g'%(k,slack_p3[k]))
 
 
 #%%
-data_col = ["X1", "X2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"]
+data_col = ["X1", "X2", "X2_1", "X2_2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"]
 #%%
 data = pd.DataFrame(columns=data_col)
-for dmu in DMU:
-    data = data.append(pd.DataFrame(data=[[X1[dmu]], [X2[dmu]], [Z1[dmu]], [Z1_1[dmu]], [Z1_2[dmu]], [Z2[dmu]], [Y1[dmu]], [Y2[dmu]]], columns=data_col))
+for k in DMU:
+    data = data.append(pd.DataFrame(data=[[X1[k], X2[k], X2_1[k], X2_2[k], Z1[k], Z1_1[k], Z1_2[k], Z2[k], Y1[k], Y2[k]]], columns=data_col, index=[k]))
+data.to_excel("data_local.xlsx")
+#%%
+col = ["eff_total", "eff_p1", "eff_p2", "eff_p3", "eff_s1", "eff_s2", "ineff_p1", "ineff_p2", "ineff_p3"]
+result_remove = pd.DataFrame(columns=col)
+for k in DMU:
+    result_remove = result_remove.append(pd.DataFrame(data=[[E[k], val_p1[k], val_p2[k], val_p3[k], val_s1[k], val_s2[k], slack_p1[k], slack_p2[k], slack_p3[k]]], columns=col, index=[k]))
+result_remove.to_excel("result_local.xlsx")
+result_remove
 #%%
