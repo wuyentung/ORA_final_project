@@ -165,3 +165,9 @@ for k in DMU:
 
 
 #%%
+data_col = ["X1", "X2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"]
+#%%
+data = pd.DataFrame(columns=data_col)
+for dmu in DMU:
+    data = data.append(pd.DataFrame(data=[[X1[dmu]], [X2[dmu]], [Z1[dmu]], [Z1_1[dmu]], [Z1_2[dmu]], [Z2[dmu]], [Y1[dmu]], [Y2[dmu]]], columns=data_col))
+#%%
