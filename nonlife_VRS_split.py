@@ -45,39 +45,20 @@ Z2 = make_dict((np.array(nonlife.iloc[[8]]).T + np.array(nonlife.iloc[[9]]).T).t
 #%%
 Y1 = make_dict((np.array(nonlife.iloc[[11]]).T).tolist(), y=True)
 Y2 = make_dict((np.array(nonlife.iloc[[10]]).T).tolist(), y=True)
-# if min(made.values()) < 0:
-#     mini = - min(made.values())
-#     for key, value in made.items():
-#         made[key] = value + mini
-#%%
-# data = pd.DataFrame([X1, X2, X2_1, X2_2, Z1, Z1_1, Z1_2, Z2, Y1, Y2], index=["X1", "X2", "X2_1", "X2_2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"])
-# #%%
-# DMU=['A', 'B', 'C', 'D', 'E']
-# #%%
-# X1 = make_dict(par=[[1], [2], [3], [4], [5]])
-# X2 = make_dict(par=[[4], [6], [8], [10], [12]])
-# X2_1 = make_dict(par=[[2], [3], [4], [5], [6]])
-# X2_2 = make_dict(par=[[2], [3], [4], [5], [6]])
-# Z1 = make_dict(par=[[10], [20], [30], [4], [5]])
-# Z1_1 = make_dict(par=[[1], [2], [3], [2], [2]])
-# Z1_2 = make_dict(par=[[9], [18], [27], [2], [3]])
-# Z2 = make_dict(par=[[12], [18], [27], [5], [4]])
-# Y1 = make_dict(par=[[22], [30], [27], [8], [7]])
-# Y2 = make_dict(par=[[20], [10], [57], [18], [17]])
-
-
 #%%
 E={}
 val_p1,val_p2,val_p3,val_s1,val_s2={},{},{},{},{}
 slack_p1,slack_p2,slack_p3={},{},{}
 I = 3
 O = 2
-MID = 2
+MID = 3
+temp = {}
 #%%
 # DMU = nonlife.columns
 for k in DMU:
     P1,P2,P3={},{},{}
     v, u, w = {}, {}, {}
+    w_0, u_0 = {}, {}
 
     m = gp.Model("network_DEA_CRS")
 
@@ -95,6 +76,16 @@ for k in DMU:
         w[i]=m.addVar(vtype=gp.GRB.CONTINUOUS,name="w_%d"%i, 
             # lb=0.000001
             )
+
+    for i in range(2):
+        w_0[i] = m.addVar(vtype=gp.GRB.CONTINUOUS,name="w0_%d"%i, 
+            # lb=0.000001
+            )
+    
+    for i in range(1):
+        u_0[i] = m.addVar(vtype=gp.GRB.CONTINUOUS,name="u0_%d"%i, 
+            # lb=0.000001
+            )
     
     m.update()
 
@@ -102,14 +93,16 @@ for k in DMU:
 
     m.addConstr((v[0] * X1[k] + v[1] * X2[k]) == 1)
     for j in DMU:
-        # (u1Y1j+u2Y2j)−(v1X1j+v2X2j)≤0  j=1,…,n
-        m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - (v[0] * X1[j] + v[1] * X2[j]) <= 0)
-        # w1Z1j−(v1X1j+v2X21j)≤0  j=1,…,n
-        P1[j] = m.addConstr(w[0] * Z1[j] - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
-        # w2Z2j−(v2X22j+w1Z11j)≤0  j=1,…,n
-        P2[j] = m.addConstr(w[1] * Z2[j] - (v[1] * X2_2[j] + w[0] * Z1_1[j]) <= 0)
-        # u1Y1j+u2Y2j−(w1Z12j+w2Z2j)≤0  j=1,…,n
-        P3[j] = m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - (w[0] * Z1_2[j] + w[1] * Z2[j]) <= 0)
+        # (u1Y1j+u2Y2j−u0)−(v1X1j+v2X2j)≤0 
+        m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (v[0] * X1[j] + v[1] * X2[j]) <= 0)
+        # (w11Z11j+w12Z12j−w_0^1 )−
+        #   (v1X1j+v2X21j)≤0 
+        P1[j] = m.addConstr((w[0] * Z1_1[j] + w[1] * Z1_2[j] - w_0[0]) - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
+        # w2Z2j−w_0^2−(v2X22j+w11Z11j−w_0^1 )≤0 
+        P2[j] = m.addConstr((w[2] * Z2[j] - w_0[1]) - (v[1] * X2_2[j] + w[0] * Z1_1[j] - w_0[0]) <= 0)
+        # (u1Y1j+u2Y2j−u0)−
+        #   (w12Z12j−w_0^1+w2Z2j−w_0^2 )≤0
+        P3[j] = m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (w[1] * Z1_2[j] - w_0[0] + w[2] * Z2[j] - w_0[1]) <= 0)
 
     m.optimize()
     # m.write("temp.mst")
@@ -122,7 +115,10 @@ for k in DMU:
     v_sol = m.getAttr('x', v)
     w_sol = m.getAttr('x', w)
     
-    threshold = 0.0000001
+    w0_sol = m.getAttr('x', w_0)
+    u0_sol = m.getAttr('x', u_0)
+
+    threshold = 0.000001
     # for i in range(I):
     #     if v_sol[i] < threshold:
     #         v_sol[i] = threshold
@@ -134,20 +130,15 @@ for k in DMU:
     #         w_sol[i] = threshold
 
     # 計算各process的效率值
-    e1 = w_sol[0] * Z1[k] / np.max([(v_sol[0] * X1[k] + v_sol[1] * X2_1[k]), threshold]) 
-    e2 = w_sol[1] * Z2[k] / np.max([(v_sol[1] * X2_2[k] + w_sol[0] * Z1_1[k]), threshold])
-    e3 = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k]) / np.max([(w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k]), threshold])
+    val_p1[k] = (w_sol[0] * Z1_1[k] + w_sol[1] * Z1_2[k] - w0_sol[0]) / np.max([(v_sol[0] * X1[k] + v_sol[1] * X2_1[k]), threshold]) 
+    val_p2[k] = (w_sol[2] * Z2[k] - w0_sol[1]) / np.max([(v_sol[1] * X2_2[k] + w_sol[0] * Z1_1[k] - w0_sol[0]), threshold])
+    val_p3[k] = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k] - u0_sol[0]) / np.max([(w_sol[1] * Z1_2[k] - w0_sol[0] + w_sol[2] * Z2[k] - w0_sol[1]), threshold])
     
     # 計算各stage的效率值
-    stage1 = (w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k]) / np.max([(v_sol[0] * X1[k] + v_sol[1] * X2[k]), threshold])
-    stage2 = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k]) / np.max([(w_sol[0] * Z1_2[k] + w_sol[1] * Z2[k]), threshold])
+    val_s1[k] = (w_sol[1] * Z1_2[k] - w0_sol[0] + w_sol[2] * Z2[k] - w0_sol[1]) / np.max([(v_sol[0] * X1[k] + v_sol[1] * X2[k]), threshold])
+    val_s2[k] = val_p3[k]
 
-    val_p1[k] = e1
-    val_p2[k] = e2
-    val_p3[k] = e3
-    val_s1[k] = stage1
-    val_s2[k] = stage2
-    
+    temp[k] = u_sol
     #顯示各process的無效率值
     process1_slack=m.getAttr('slack',P1)
     slack_p1[k] = process1_slack[k]
@@ -177,12 +168,13 @@ data_col = ["X1", "X2", "X2_1", "X2_2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"]
 data = pd.DataFrame(columns=data_col)
 for k in DMU:
     data = data.append(pd.DataFrame(data=[[X1[k], X2[k], X2_1[k], X2_2[k], Z1[k], Z1_1[k], Z1_2[k], Z2[k], Y1[k], Y2[k]]], columns=data_col, index=[k]))
-data.to_excel("data_local.xlsx")
+data
+# data.to_excel("data_local.xlsx")
 #%%
 col = ["eff_total", "eff_p1", "eff_p2", "eff_p3", "eff_s1", "eff_s2", "ineff_p1", "ineff_p2", "ineff_p3"]
 result_remove = pd.DataFrame(columns=col)
 for k in DMU:
     result_remove = result_remove.append(pd.DataFrame(data=[[E[k], val_p1[k], val_p2[k], val_p3[k], val_s1[k], val_s2[k], slack_p1[k], slack_p2[k], slack_p3[k]]], columns=col, index=[k]))
-result_remove.to_excel("result_local.xlsx")
+result_remove.to_excel("result_local_VRS_Z1split.xlsx")
 result_remove
 #%%
