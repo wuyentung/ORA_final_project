@@ -3,17 +3,15 @@ import gurobipy as gp
 import pandas as pd
 import numpy as np
 import pandas as pd
-from pandas._libs import indexing
 #%%
-nonlife = pd.read_excel("nonlife-insurance.xlsx", sheet_name="final_variables", index_col=0)
+life = pd.read_excel("life_2019.xlsx", index_col=0)
+
 #%%
-DMU = [dmu for dmu in nonlife.columns]
-DMU.remove("科法斯")
-DMU.remove("裕利安宜")
-DMU.remove("法國巴黎")
-DMU.remove("安達")
-DMU.remove("美國國際")
-DMU.remove("亞洲")
+DMU = [dmu for dmu in life.columns]
+# DMU.remove("友邦人壽")
+# DMU.remove("法國巴黎人壽")
+# DMU.remove("安達人壽")
+
 #%%
 def make_dict(par, DMU=DMU, y=False):
     if len(par) != len(DMU):
@@ -26,34 +24,39 @@ def make_dict(par, DMU=DMU, y=False):
         made[dmu] = par[c][0]
         c+=1
     if min(made.values()) < 0:
-        mini = - min(made.values())
-        # if y:
-        #     mini -= 1
-        for key, value in made.items():
-            made[key] = value + mini
+        if y:
+            mini = - min(made.values())
+            # if y:
+            #     mini -= 1
+            for key, value in made.items():
+                made[key] = value + mini
+        else:
+            print("\n\n============\n\n")
+            print("there is negative value in input side")
+            print("\n\n============\n\n")
     return made
+
 #%%
-X1 = make_dict((np.array(nonlife.iloc[[0]]).T + np.array(nonlife.iloc[[1]]).T).tolist())
-X2 = make_dict((((np.array(nonlife.iloc[[2]]).T + np.array(nonlife.iloc[[3]]).T + np.array(nonlife.iloc[[4]]).T))).tolist())
-X2_1 = make_dict((((np.array(nonlife.iloc[[2]]).T + np.array(nonlife.iloc[[3]]).T + np.array(nonlife.iloc[[4]]).T))/2).tolist())
+X1 = make_dict((np.array(life.iloc[[0]]).T + np.array(life.iloc[[1]]).T).tolist())
+X2 = make_dict((((np.array(life.iloc[[2]]).T + np.array(life.iloc[[3]]).T + np.array(life.iloc[[4]]).T))).tolist())
+X2_1 = make_dict((((np.array(life.iloc[[2]]).T + np.array(life.iloc[[3]]).T + np.array(life.iloc[[4]]).T))/2).tolist())
 X2_2 = X2_1
 
-Z1 = make_dict((np.array(nonlife.iloc[[5]]).T + np.array(nonlife.iloc[[6]]).T).tolist())
-Z1_1 = make_dict((np.array(nonlife.iloc[[7]]).T).tolist())
-Z1_2 = make_dict((np.array(nonlife.iloc[[5]]).T + np.array(nonlife.iloc[[6]]).T - np.array(nonlife.iloc[[7]]).T).tolist())
-Z2 = make_dict((np.array(nonlife.iloc[[8]]).T + np.array(nonlife.iloc[[9]]).T).tolist())
+Z1 = make_dict((np.array(life.iloc[[5]]).T + np.array(life.iloc[[6]]).T).tolist())
+Z1_1 = make_dict((np.array(life.iloc[[7]]).T).tolist())
+Z1_2 = make_dict((np.array(life.iloc[[5]]).T + np.array(life.iloc[[6]]).T - np.array(life.iloc[[7]]).T).tolist())
+Z2 = make_dict((np.array(life.iloc[[8]]).T + np.array(life.iloc[[9]]).T).tolist())
 #%%
-Y1 = make_dict((np.array(nonlife.iloc[[11]]).T).tolist(), y=True)
-Y2 = make_dict((np.array(nonlife.iloc[[10]]).T).tolist(), y=True)
-
-
+Y1 = make_dict((np.array(life.iloc[[11]]).T).tolist(), y=True)
+Y2 = make_dict((np.array(life.iloc[[10]]).T).tolist(), y=True)
 #%%
 E={}
 val_p1,val_p2,val_p3,val_s1,val_s2={},{},{},{},{}
 slack_p1,slack_p2,slack_p3={},{},{}
 I = 3
 O = 2
-MID = 2
+MID = 3
+temp = {}
 #%%
 # DMU = nonlife.columns
 for k in DMU:
@@ -74,7 +77,7 @@ for k in DMU:
             )
 
     for i in range(MID):
-        w[i] = m.addVar(vtype=gp.GRB.CONTINUOUS,name="w_%d"%i, 
+        w[i]=m.addVar(vtype=gp.GRB.CONTINUOUS,name="w_%d"%i, 
             # lb=0.000001
             )
 
@@ -90,21 +93,22 @@ for k in DMU:
     
     m.update()
 
-    m.setObjective(u[0] * Y1[k] + u[1] * Y2[k] - u_0[0], gp.GRB.MAXIMIZE)
+    m.setObjective(u[0] * Y1[k] + u[1] * Y2[k] , gp.GRB.MAXIMIZE)
 
     m.addConstr((v[0] * X1[k] + v[1] * X2[k]) == 1)
     for j in DMU:
-        # (u1Y1j+u2Y2j−u0)−(v1X1j+v2X2j)≤0
+        # (u1Y1j+u2Y2j−u0)−(v1X1j+v2X2j)≤0 
         m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (v[0] * X1[j] + v[1] * X2[j]) <= 0)
-        # w1Z1j−w_0^1−(v1X1j+v2X21j)≤0
-        P1[j] = m.addConstr((w[0] * Z1[j] - w_0[0]) - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
-        # w2Z2j−w_0^2−(v2X22j+w1Z11j−w_0^1 )≤0 
-        P2[j] = m.addConstr((w[1] * Z2[j] - w_0[1]) - (v[1] * X2_2[j] + w[0] * Z1_1[j] - w_0[0]) <= 0)
-        # u1Y1j+u2Y2j−u0−
-        #   (w1Z12j+w2Z2j−w_0^1−w_0^2 )≤0 
-        P3[j] = m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (w[0] * Z1_2[j] - w_0[0] + w[1] * Z2[j] - w_0[1]) <= 0)
-
+        # (w11Z11j+w12Z12j−w_0^1 )−
+        #   (v1X1j+v2X21j)≤0 
+        P1[j] = m.addConstr((w[0] * Z1_1[j] + w[1] * Z1_2[j] - w_0[0]) - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
+        # w2Z2j−w_0^2−(v2X22j+w11Z11j−w_0^1 )≤0 
+        P2[j] = m.addConstr((w[2] * Z2[j] - w_0[1]) - (v[1] * X2_2[j] + w[0] * Z1_1[j] - w_0[0]) <= 0)
+        # (u1Y1j+u2Y2j−u0)−
+        #   (w12Z12j−w_0^1+w2Z2j−w_0^2 )≤0
+        P3[j] = m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (w[1] * Z1_2[j] - w_0[0] + w[2] * Z2[j] - w_0[1]) <= 0)
     m.optimize()
+    m.write("VRS_Z1split.lp")
     # m.write("temp.mst")
     # break
     E[k] = m.objVal
@@ -118,7 +122,7 @@ for k in DMU:
     w0_sol = m.getAttr('x', w_0)
     u0_sol = m.getAttr('x', u_0)
 
-    threshold = 0.0000001
+    threshold = 0.000001
     # for i in range(I):
     #     if v_sol[i] < threshold:
     #         v_sol[i] = threshold
@@ -130,14 +134,15 @@ for k in DMU:
     #         w_sol[i] = threshold
 
     # 計算各process的效率值
-    val_p1[k] = (w_sol[0] * Z1[k] - w0_sol[0]) / (v_sol[0] * X1[k] + v_sol[1] * X2_1[k])
-    val_p2[k] = (w_sol[1] * Z2[k] - w0_sol[1]) / (v_sol[1] * X2_2[k] + w_sol[0] * Z1_1[k] - w0_sol[0])
-    val_p3[k] = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k] - u0_sol[0]) / (w_sol[0] * Z1_2[k] - w0_sol[0] + w_sol[1] * Z2[k] - w0_sol[1])
+    val_p1[k] = (w_sol[0] * Z1_1[k] + w_sol[1] * Z1_2[k] - w0_sol[0]) / np.max([(v_sol[0] * X1[k] + v_sol[1] * X2_1[k]), threshold]) 
+    val_p2[k] = (w_sol[2] * Z2[k] - w0_sol[1]) / np.max([(v_sol[1] * X2_2[k] + w_sol[0] * Z1_1[k] - w0_sol[0]), threshold])
+    val_p3[k] = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k] - u0_sol[0]) / np.max([(w_sol[1] * Z1_2[k] - w0_sol[0] + w_sol[2] * Z2[k] - w0_sol[1]), threshold])
     
     # 計算各stage的效率值
-    val_s1[k] = (w_sol[0] * Z1_2[k] - w0_sol[0] + w_sol[1] * Z2[k] - w0_sol[1]) / (v_sol[0] * X1[k] + v_sol[1] * X2[k])
+    val_s1[k] = (w_sol[1] * Z1_2[k] - w0_sol[0] + w_sol[2] * Z2[k] - w0_sol[1]) / np.max([(v_sol[0] * X1[k] + v_sol[1] * X2[k]), threshold])
     val_s2[k] = val_p3[k]
-    
+
+    temp[k] = u_sol
     #顯示各process的無效率值
     process1_slack=m.getAttr('slack',P1)
     slack_p1[k] = process1_slack[k]
@@ -167,12 +172,13 @@ data_col = ["X1", "X2", "X2_1", "X2_2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"]
 data = pd.DataFrame(columns=data_col)
 for k in DMU:
     data = data.append(pd.DataFrame(data=[[X1[k], X2[k], X2_1[k], X2_2[k], Z1[k], Z1_1[k], Z1_2[k], Z2[k], Y1[k], Y2[k]]], columns=data_col, index=[k]))
+data
 # data.to_excel("data_local.xlsx")
 #%%
 col = ["eff_total", "eff_p1", "eff_p2", "eff_p3", "eff_s1", "eff_s2", "ineff_p1", "ineff_p2", "ineff_p3"]
 result_remove = pd.DataFrame(columns=col)
 for k in DMU:
     result_remove = result_remove.append(pd.DataFrame(data=[[E[k], val_p1[k], val_p2[k], val_p3[k], val_s1[k], val_s2[k], slack_p1[k], slack_p2[k], slack_p3[k]]], columns=col, index=[k]))
-result_remove.to_excel("result_local_VRS.xlsx")
+result_remove.to_excel("VRS_Z1split.xlsx")
 result_remove
 #%%

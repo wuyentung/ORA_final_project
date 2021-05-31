@@ -52,7 +52,14 @@ slack_p1,slack_p2,slack_p3={},{},{}
 I = 3
 O = 2
 MID = 3
-temp = {}
+u_sols = {}
+w_sols = {}
+v_sols = {}
+#%%
+def avoid0(val):
+    if 0 == val:
+        return 0.000000001
+    return val
 #%%
 # DMU = nonlife.columns
 for k in DMU:
@@ -102,6 +109,10 @@ for k in DMU:
     v_sol = m.getAttr('x', v)
     w_sol = m.getAttr('x', w)
     
+    u_sols[k] = u_sol
+    v_sols[k] = v_sol
+    w_sols[k] = w_sol
+
     threshold = 0.000001
     # for i in range(I):
     #     if v_sol[i] < threshold:
@@ -120,9 +131,18 @@ for k in DMU:
     
     # 計算各stage的效率值
     val_s1[k] = (w_sol[1] * Z1_2[k] + w_sol[2] * Z2[k]) / np.max([(v_sol[0] * X1[k] + v_sol[1] * X2[k]), threshold])
-    val_s2[k] = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k]) / np.max([(w_sol[1] * Z1_2[k] + w_sol[2] * Z2[k]), threshold])
+    
+    ######
+    # 計算各process的效率值
+    val_p1[k] = (w_sol[0] * Z1_1[k] + w_sol[1] * Z1_2[k]) / (avoid0(v_sol[0]) * X1[k] + avoid0(v_sol[1]) * X2_1[k])
+    val_p2[k] = w_sol[2] * Z2[k] / (avoid0(v_sol[1]) * X2_2[k] + avoid0(w_sol[0]) * Z1_1[k])
+    val_p3[k] = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k]) / (avoid0(w_sol[1]) * Z1_2[k] + avoid0(w_sol[2]) * Z2[k])
+    
+    # 計算各stage的效率值
+    val_s1[k] = (w_sol[1] * Z1_2[k] + w_sol[2] * Z2[k]) / (avoid0(v_sol[0]) * X1[k] + avoid0(v_sol[1]) * X2[k])
+    val_s2[k] = val_p3[k]
 
-    temp[k] = u_sol
+    
     #顯示各process的無效率值
     process1_slack=m.getAttr('slack',P1)
     slack_p1[k] = process1_slack[k]
@@ -131,6 +151,18 @@ for k in DMU:
     process3_slack=m.getAttr('slack',P3)
     slack_p3[k] = process3_slack[k]
     # break
+#%%
+for k in DMU:
+    print("\n", k)
+    print("v_sols:")
+    for i in v_sols[k].values():
+        print("\t", i)
+    print("w_sols:")
+    for i in w_sols[k].values():
+        print("\t", i)
+    print("u_sols:")
+    for i in u_sols[k].values():
+        print("\t", i)
 #%%
 for k in DMU:
     
