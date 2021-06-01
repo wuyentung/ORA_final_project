@@ -98,6 +98,10 @@ def solve(df, DMU, NAME="temp"):
             P2[j] = m.addConstr(w[1] * Z2[j] - (v[1] * X2_2[j] + w[0] * Z1_1[j]) <= 0)
             # u1Y1j+u2Y2j−(w1Z12j+w2Z2j)≤0  j=1,…,n
             P3[j] = m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - (w[0] * Z1_2[j] + w[1] * Z2[j]) <= 0)
+            ## 分子大於零
+            m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] >= THRESHOLD)
+            m.addConstr(w[0] * Z1[j] >= THRESHOLD)
+            m.addConstr(w[1] * Z2[j] >= THRESHOLD)
 
         m.optimize()
         # m.write("temp.mst")
@@ -190,6 +194,10 @@ def solve(df, DMU, NAME="temp"):
             P2[j] = m.addConstr(w[2] * Z2[j] - (v[1] * X2_2[j] + w[0] * Z1_1[j]) <= 0)
             # u1Y1j+u2Y2j−(w12Z12j+w2Z2j)≤0  
             P3[j] = m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - (w[1] * Z1_2[j] + w[2] * Z2[j]) <= 0)
+            ## 分子大於零
+            m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] >= THRESHOLD)
+            m.addConstr(w[0] * Z1_1[j] + w[1] * Z1_2[j] >= THRESHOLD)
+            m.addConstr(w[2] * Z2[j] >= THRESHOLD)
 
         m.optimize()
         # m.write("temp.mst")
@@ -291,6 +299,11 @@ def solve(df, DMU, NAME="temp"):
             # u1Y1j+u2Y2j−u0−
             #   (w1Z12j+w2Z2j−w_0^1−w_0^2 )≤0 
             P3[j] = m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (w[0] * Z1_2[j] - w_0[0] + w[1] * Z2[j] - w_0[1]) <= 0)
+            ## 分子大於零
+            m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - u_0[0] >= THRESHOLD)
+            m.addConstr(w[0] * Z1[j] - w_0[0] >= THRESHOLD)
+            m.addConstr(w[1] * Z2[j] - w_0[1] >= THRESHOLD)
+
         m.optimize()
         # m.write("temp.mst")
         # break
@@ -396,6 +409,11 @@ def solve(df, DMU, NAME="temp"):
             # (u1Y1j+u2Y2j−u0)−
             #   (w12Z12j−w_0^1+w2Z2j−w_0^2 )≤0
             P3[j] = m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (w[1] * Z1_2[j] - w_0[0] + w[2] * Z2[j] - w_0[1]) <= 0)
+            ## 分子大於零
+            m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - u_0[0] >= THRESHOLD)
+            m.addConstr(w[0] * Z1_1[j] + w[1] * Z1_2[j] - w_0[0] >= THRESHOLD)
+            m.addConstr(w[2] * Z2[j] - w_0[1] >= THRESHOLD)
+
         m.optimize()
         E[k] = m.objVal
 
