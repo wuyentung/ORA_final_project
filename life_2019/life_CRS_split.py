@@ -48,10 +48,11 @@ Z2 = make_dict((np.array(life.iloc[[8]]).T + np.array(life.iloc[[9]]).T).tolist(
 Y1 = make_dict((np.array(life.iloc[[11]]).T).tolist(), y=True)
 Y2 = make_dict((np.array(life.iloc[[10]]).T).tolist(), y=True)
 #%%
+THRESHOLD = 0.00000000001
 E={}
 val_p1,val_p2,val_p3,val_s1,val_s2={},{},{},{},{}
 slack_p1,slack_p2,slack_p3={},{},{}
-I = 3
+I = 2
 O = 2
 MID = 3
 temp = {}
@@ -60,22 +61,21 @@ temp = {}
 for k in DMU:
     P1,P2,P3={},{},{}
     v, u, w = {}, {}, {}
-
     m = gp.Model("network_DEA_CRS")
 
     for i in range(I):
         v[i]=m.addVar(vtype=gp.GRB.CONTINUOUS,name="v_%d"%i, 
-            # lb=0.000001
+            lb=THRESHOLD
             )
 
     for i in range(O):
         u[i]=m.addVar(vtype=gp.GRB.CONTINUOUS,name="u_%d"%i, 
-            # lb=0.000001
+            lb=THRESHOLD
             )
 
     for i in range(MID):
         w[i]=m.addVar(vtype=gp.GRB.CONTINUOUS,name="w_%d"%i, 
-            # lb=0.000001
+            lb=THRESHOLD
             )
     
     m.update()

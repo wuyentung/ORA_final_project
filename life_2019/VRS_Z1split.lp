@@ -1,9 +1,9 @@
-\ Model network_DEA_CRS
+\ Model network_DEA_VRS
 \ LP format - for model browsing. Use MPS format to capture full model detail.
 Maximize
-  0 v_2 + 1.89191863e+08 u_0 + 9.870835e+06 u_1
+  2.01539838e+08 u_0 + 119753 u_1 - u0_0
 Subject To
- R0: 1.555557e+06 v_0 + 1.164531e+06 v_1 = 1
+ R0: 2.026949e+06 v_0 + 1.049737e+06 v_1 = 1
  R1: - 1.555557e+06 v_0 - 1.164531e+06 v_1 + 1.89191863e+08 u_0
    + 9.870835e+06 u_1 - u0_0 <= 0
  R2: - 1.555557e+06 v_0 - 582265.5 v_1 + 135984 w_0 + 5.2114905e+07 w_1
@@ -168,4 +168,14 @@ Subject To
  R88: 2.01539838e+08 u_0 + 119753 u_1 - 1.585243e+06 w_1 - 3.598624e+06 w_2
    + w0_0 + w0_1 - u0_0 <= 0
 Bounds
+ v_0 >= 1e-09
+ v_1 >= 1e-09
+ u_0 >= 1e-09
+ u_1 >= 1e-09
+ w_0 >= 1e-09
+ w_1 >= 1e-09
+ w_2 >= 1e-09
+ w0_0 >= 1e-09
+ w0_1 >= 1e-09
+ u0_0 >= 1e-09
 End

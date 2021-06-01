@@ -2,6 +2,52 @@
 from gurobipy import *
 #%%
 
+DMU=['A']
+def make_dict(par, DMU=DMU, y=False):
+    if len(par) != len(DMU):
+        ValueError("shoule be same len")
+    made = {}
+    c = 0
+    for dmu in DMU:
+        # print(DMU)
+        # print(par[c][0])
+        made[dmu] = par[c][0]
+        c+=1
+    if min(made.values()) < 0:
+        if y:
+            mini = - min(made.values())
+            # if y:
+            #     mini -= 1
+            for key, value in made.items():
+                made[key] = value + mini
+        else:
+            print("\n\n============\n\n")
+            print("there is negative value in input side")
+            print("\n\n============\n\n")
+    return made
+
+X1 = make_dict(par=[[1]], DMU=DMU)
+X2 = make_dict(par=[[2]], DMU=DMU)
+X2_1 = make_dict(par=[[1]], DMU=DMU)
+X2_2 = make_dict(par=[[1]], DMU=DMU)
+Z1 = make_dict(par=[[10]], DMU=DMU)
+Z1_1 = make_dict(par=[[5]], DMU=DMU)
+Z1_2 = make_dict(par=[[5]], DMU=DMU)
+Z2 = make_dict(par=[[10]], DMU=DMU)
+Y1 = make_dict(par=[[20]], DMU=DMU)
+Y2 = make_dict(par=[[20]], DMU=DMU)
+#%%
+DMU=['A', 'B', 'C', 'D', 'E']
+X1 = make_dict(par=[[1], [2], [3], [4], [5]])
+X2 = make_dict(par=[[2], [6], [8], [10], [12]])
+X2_1 = make_dict(par=[[1], [3], [4], [5], [6]])
+X2_2 = make_dict(par=[[1], [3], [4], [5], [6]])
+Z1 = make_dict(par=[[10], [20], [30], [4], [5]])
+Z1_1 = make_dict(par=[[5], [2], [3], [2], [2]])
+Z1_2 = make_dict(par=[[5], [18], [27], [2], [3]])
+Z2 = make_dict(par=[[10], [18], [27], [5], [4]])
+Y1 = make_dict(par=[[20], [30], [27], [8], [7]])
+Y2 = make_dict(par=[[20], [10], [57], [18], [17]])
 DMU=['A', 'B','C','D','E']
 E={}
 val_p1,val_p2,val_p3,val_s1,val_s2={},{},{},{},{}

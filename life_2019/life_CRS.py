@@ -45,7 +45,7 @@ Z1 = make_dict((np.array(life.iloc[[5]]).T + np.array(life.iloc[[6]]).T).tolist(
 Z1_1 = make_dict((np.array(life.iloc[[7]]).T).tolist())
 Z1_2 = make_dict((np.array(life.iloc[[5]]).T + np.array(life.iloc[[6]]).T - np.array(life.iloc[[7]]).T).tolist())
 Z2 = make_dict((np.array(life.iloc[[8]]).T + np.array(life.iloc[[9]]).T).tolist())
-#%%
+
 Y1 = make_dict((np.array(life.iloc[[11]]).T).tolist(), y=True)
 Y2 = make_dict((np.array(life.iloc[[10]]).T).tolist(), y=True)
 
@@ -57,7 +57,6 @@ for k in DMU:
     data = data.append(pd.DataFrame(data=[[X1[k], X2[k], X2_1[k], X2_2[k], Z1[k], Z1_1[k], Z1_2[k], Z2[k], Y1[k], Y2[k]]], columns=data_col, index=[k]))
 # data.to_excel("data_domestic.xlsx")
 # data.to_excel("data.xlsx")
-
 #%%
 def avoid0(val):
     if 0 == val:
@@ -67,7 +66,7 @@ def avoid0(val):
 E={}
 val_p1,val_p2,val_p3,val_s1,val_s2={},{},{},{},{}
 slack_p1,slack_p2,slack_p3={},{},{}
-I = 3
+I = 2
 O = 2
 MID = 2
 u_sols = {}
@@ -83,17 +82,17 @@ for k in DMU:
 
     for i in range(I):
         v[i]=m.addVar(vtype=gp.GRB.CONTINUOUS,name="v_%d"%i, 
-            # lb=0.0000000001
+            lb=0.00000000001
             )
 
     for i in range(O):
         u[i]=m.addVar(vtype=gp.GRB.CONTINUOUS,name="u_%d"%i, 
-            # lb=0.0000000001
+            lb=0.00000000001
             )
 
     for i in range(MID):
         w[i]=m.addVar(vtype=gp.GRB.CONTINUOUS,name="w_%d"%i, 
-            # lb=0.0000000001
+            lb=0.00000000001
             )
     
     m.update()
@@ -166,7 +165,6 @@ for k in DMU:
     print("u_sols:")
     for i in u_sols[k].values():
         print("\t", i)
-    print("w0_sols:")
 #%%
 for k in DMU:
     

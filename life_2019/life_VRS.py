@@ -93,13 +93,11 @@ for k in DMU:
             )
 
     for i in range(2):
-        w_0[i] = m.addVar(vtype=gp.GRB.CONTINUOUS,name="w0_%d"%i, 
-            # lb=0.000001
+        w_0[i] = m.addVar(vtype=gp.GRB.CONTINUOUS,name="w0_%d"%i,  
             )
     
     for i in range(1):
-        u_0[i] = m.addVar(vtype=gp.GRB.CONTINUOUS,name="u0_%d"%i, 
-            # lb=0.000001
+        u_0[i] = m.addVar(vtype=gp.GRB.CONTINUOUS,name="u0_%d"%i,  
             )
     
     m.update()
