@@ -2,9 +2,7 @@
 import gurobipy as gp
 import pandas as pd
 import numpy as np 
-#%%
-def pp():
-    print(1)
+
 #%%
 def solve(df, DMU, NAME="temp"):
     def make_dict(par, DMU=DMU, y=False):
@@ -48,6 +46,7 @@ def solve(df, DMU, NAME="temp"):
         if 0 == val:
             return THRESHOLD
         return val
+    RESULT_col = ["eff_total", "eff_p1", "eff_p2", "eff_p3", "eff_s1", "eff_s2", "ineff_p1", "ineff_p2", "ineff_p3"]
     
     #######################
     #######################
@@ -139,7 +138,6 @@ def solve(df, DMU, NAME="temp"):
         sol_CRS = sol_CRS.append(pd.DataFrame(data=[sols[k]], columns=sol_col, index=[k]))
         
     ## check efficiency
-    RESULT_col = ["eff_total", "eff_p1", "eff_p2", "eff_p3", "eff_s1", "eff_s2", "ineff_p1", "ineff_p2", "ineff_p3"]
     result_CRS = pd.DataFrame(columns=RESULT_col)
     for k in DMU:
         result_CRS = result_CRS.append(pd.DataFrame(data=[[E[k], val_p1[k], val_p2[k], val_p3[k], val_s1[k], val_s2[k], slack_p1[k], slack_p2[k], slack_p3[k]]], columns=RESULT_col, index=[k]))
@@ -338,7 +336,7 @@ def solve(df, DMU, NAME="temp"):
         slack_p3[k] = process3_slack[k]
 
     ## check solutions
-    sol_col = ["v_sol1", "v_sol2", "w_sol1", "w_sol2", "u_sol1", "u_sol2", "w0_sol1", "w0_sol1", "u0_sol1"]
+    sol_col = ["v_sol1", "v_sol2", "w_sol1", "w_sol2", "u_sol1", "u_sol2", "w0_sol1", "w0_sol2", "u0_sol1"]
     sol_VRS = pd.DataFrame(columns=sol_col)
     for k in DMU:
         sol_VRS = sol_VRS.append(pd.DataFrame(data=[sols[k]], columns=sol_col, index=[k]))
@@ -447,7 +445,7 @@ def solve(df, DMU, NAME="temp"):
         slack_p3[k] = process3_slack[k]
     
     ## check solutions
-    sol_col = ["v_sol1", "v_sol2", "w_sol1", "w_sol2", "w_sol3", "u_sol1", "u_sol2", "w0_sol1", "w0_sol1", "u0_sol1"]
+    sol_col = ["v_sol1", "v_sol2", "w_sol1", "w_sol2", "w_sol3", "u_sol1", "u_sol2", "w0_sol1", "w0_sol2", "u0_sol1"]
     sol_VRS_Z1split = pd.DataFrame(columns=sol_col)
     for k in DMU:
         sol_VRS_Z1split = sol_VRS_Z1split.append(pd.DataFrame(data=[sols[k]], columns=sol_col, index=[k]))
