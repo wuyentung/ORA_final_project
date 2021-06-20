@@ -448,7 +448,7 @@ def solve(df, DMU, NAME="temp"):
     sol_col = ["v_sol1", "v_sol2", "w_sol1", "w_sol2", "w_sol3", "u_sol1", "u_sol2", "w0_sol1", "w0_sol2", "u0_sol1"]
     sol_VRS_Z1split = pd.DataFrame(columns=sol_col)
     for k in DMU:
-        sol_VRS_Z1split = sol_VRS_Z1split.append(pd.DataFrame(data=[sols[k]], columns=sol_col, index=[k]))
+        sol_VRS_Z1split = sol_VRS_Z1split.append(pd.DataFrame(data=[sols[k]] , columns=sol_col, index=[k]))
         
     ## check efficiency
     result_VRS_Z1split = pd.DataFrame(columns=RESULT_col)
