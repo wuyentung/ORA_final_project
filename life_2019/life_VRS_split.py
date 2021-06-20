@@ -11,6 +11,11 @@ DMU = [dmu for dmu in life.columns]
 # DMU.remove("友邦人壽")
 # DMU.remove("法國巴黎人壽")
 # DMU.remove("安達人壽")
+#%%
+def safe_div(upper, lower):
+    if 0 == lower:
+        return 1
+    return upper/lower
 
 #%%
 def make_dict(par, DMU=DMU, y=False):
@@ -54,6 +59,7 @@ Y2 = make_dict((np.array(life.iloc[[10]]).T).tolist(), y=True)
 E={}
 val_p1,val_p2,val_p3,val_s1,val_s2={},{},{},{},{}
 slack_p1,slack_p2,slack_p3={},{},{}
+val_s3 = {}
 I = 2
 O = 2
 MID = 3
@@ -124,13 +130,17 @@ for k in DMU:
     sols[k] = m.x
 
     # 計算各process的效率值
-    val_p1[k] = (w_sol[0] * Z1_1[k] + w_sol[1] * Z1_2[k] - w0_sol[0]) / (v_sol[0] * X1[k] + v_sol[1] * X2_1[k])
-    val_p2[k] = (w_sol[2] * Z2[k] - w0_sol[1]) / (v_sol[1] * X2_2[k] + w_sol[0] * Z1_1[k] - w0_sol[0])
-    val_p3[k] = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k] - u0_sol[0]) / (w_sol[1] * Z1_2[k] - w0_sol[0] + w_sol[2] * Z2[k] - w0_sol[1])
+    # val_p1[k] = (w_sol[0] * Z1_1[k] + w_sol[1] * Z1_2[k] - w0_sol[0]) / (v_sol[0] * X1[k] + v_sol[1] * X2_1[k])
+    # val_p2[k] = (w_sol[2] * Z2[k] - w0_sol[1]) / (v_sol[1] * X2_2[k] + w_sol[0] * Z1_1[k] - w0_sol[0])
+    # val_p3[k] = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k] - u0_sol[0]) / (w_sol[1] * Z1_2[k] - w0_sol[0] + w_sol[2] * Z2[k] - w0_sol[1])
+    val_p1[k] = safe_div((w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] - w0_sol[0]), ((v_sol[0])*X1[k] + (v_sol[1])*X2_1[k]))
+    val_p2[k] = safe_div((w_sol[2]*Z2[k] - w0_sol[1]), ((v_sol[1])*X2_2[k] + (w_sol[0])*Z1_1[k] - w0_sol[0]))
+    val_p3[k] = safe_div((u_sol[0]*Y1[k] + u_sol[1]*Y2[k] - u0_sol[0]), (w_sol[1]*Z1_2[k] - w0_sol[0] + w_sol[2]*Z2[k] - w0_sol[1]))
     
     # 計算各stage的效率值
-    val_s1[k] = (w_sol[1] * Z1_2[k] - w0_sol[0] + w_sol[2] * Z2[k] - w0_sol[1]) / (v_sol[0] * X1[k] + v_sol[1] * X2[k])
-    val_s2[k] = val_p3[k]
+    val_s1[k] = safe_div((w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] - w0_sol[0] + v_sol[1]*X2_2[k]), (v_sol[0]*X1[k] + (v_sol[1])*X2[k]))
+    val_s2[k] = safe_div((w_sol[1]*Z1_2[k] - w0_sol[0] + w_sol[2]*Z2[k] - w0_sol[1]), (w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] - w0_sol[0] + v_sol[1]*X2_2[k]))
+    val_s3[k] = val_p3[k]
 
 
     #顯示各process的無效率值
@@ -161,14 +171,14 @@ data
 # data.to_excel("data_local.xlsx")
 #%%
 ## check efficiency
-col = ["eff_total", "eff_p1", "eff_p2", "eff_p3", "eff_s1", "eff_s2", "ineff_p1", "ineff_p2", "ineff_p3"]
+col = ["eff_total", "eff_p1", "eff_p2", "eff_p3", "eff_s1", "eff_s2", "eff_s3", "ineff_p1", "ineff_p2", "ineff_p3"]
 result_remove = pd.DataFrame(columns=col)
 for k in DMU:
-    result_remove = result_remove.append(pd.DataFrame(data=[[E[k], val_p1[k], val_p2[k], val_p3[k], val_s1[k], val_s2[k], slack_p1[k], slack_p2[k], slack_p3[k]]], columns=col, index=[k]))
+    result_remove = result_remove.append(pd.DataFrame(data=[[E[k], val_p1[k], val_p2[k], val_p3[k], val_s1[k], val_s2[k], val_s3[k], slack_p1[k], slack_p2[k], slack_p3[k]]], columns=col, index=[k]))
 
 result_remove = result_remove.append(pd.DataFrame(data=[[np.mean(result_remove[i]) for i in col]], columns=col))
 result_remove = result_remove.append(pd.DataFrame(data=[[np.std(result_remove[i]) for i in col]], columns=col))
-result_remove.to_excel("0622_verifiy.xlsx")
+result_remove.to_excel("0622_verifiy_3stage.xlsx")
 result_remove
 #%%
 
