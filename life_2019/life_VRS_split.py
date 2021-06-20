@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import pandas as pd
 #%%
-life = pd.read_excel("life_2019.xlsx", index_col=0)
+life = pd.read_excel("/Users/tungwu/Documents/GitHub/ORA_final_project/data/life_2019.xlsx", index_col=0)
 
 #%%
 DMU = [dmu for dmu in life.columns]
@@ -64,7 +64,7 @@ for k in DMU:
     v, u, w = {}, {}, {}
     w_0, u_0 = {}, {}
 
-    threshold = 0.000000001
+    threshold = 0.00000000001
 
     m = gp.Model("network_DEA_VRS")
 
@@ -166,8 +166,9 @@ result_remove = pd.DataFrame(columns=col)
 for k in DMU:
     result_remove = result_remove.append(pd.DataFrame(data=[[E[k], val_p1[k], val_p2[k], val_p3[k], val_s1[k], val_s2[k], slack_p1[k], slack_p2[k], slack_p3[k]]], columns=col, index=[k]))
 
+result_remove = result_remove.append(pd.DataFrame(data=[[np.mean(result_remove[i]) for i in col]], columns=col))
 result_remove = result_remove.append(pd.DataFrame(data=[[np.std(result_remove[i]) for i in col]], columns=col))
-# result_remove.to_excel("VRS_Z1split.xlsx")
+result_remove.to_excel("0622_verifiy.xlsx")
 result_remove
 #%%
 

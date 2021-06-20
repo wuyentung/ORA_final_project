@@ -45,9 +45,9 @@ def solve(df, DMU, NAME="temp"):
     X2_2 = X2_1
 
     Z1 = make_dict((np.array(df.iloc[[5]]).T + np.array(df.iloc[[6]]).T).tolist())
-    Z1TO2 = make_dict((np.array(df.iloc[[7]]).T).tolist())
-    Z1TO3 = make_dict((np.array(df.iloc[[5]]).T + np.array(df.iloc[[6]]).T - np.array(df.iloc[[7]]).T).tolist())
-    Z2TO3 = make_dict((np.array(df.iloc[[8]]).T + np.array(df.iloc[[9]]).T).tolist())
+    Z1_1 = make_dict((np.array(df.iloc[[7]]).T).tolist())
+    Z1_2 = make_dict((np.array(df.iloc[[5]]).T + np.array(df.iloc[[6]]).T - np.array(df.iloc[[7]]).T).tolist())
+    Z2 = make_dict((np.array(df.iloc[[8]]).T + np.array(df.iloc[[9]]).T).tolist())
 
     Y1 = make_dict((np.array(df.iloc[[11]]).T).tolist(), y=True)
     Y2 = make_dict((np.array(df.iloc[[10]]).T).tolist(), y=True)
@@ -104,11 +104,11 @@ def solve(df, DMU, NAME="temp"):
             # (u1Y1j+u2Y2j)−(v1X1j+v2X2j)≤0 
             m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - (v[0] * X1[j] + v[1] * X2[j]) <= 0)
             # w11Z11j+w12Z12j−(v1X1j+v2X21j)≤0 
-            P1[j] = m.addConstr((w[0] * Z1TO2[j] + w[1] * Z1TO3[j]) - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
+            P1[j] = m.addConstr((w[0] * Z1_1[j] + w[1] * Z1_2[j]) - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
             # w2Z2j−(v2X22j+w11Z11j)≤0
-            P2[j] = m.addConstr(w[2] * Z2TO3[j] - (v[1] * X2_2[j] + w[0] * Z1TO2[j]) <= 0)
+            P2[j] = m.addConstr(w[2] * Z2[j] - (v[1] * X2_2[j] + w[0] * Z1_1[j]) <= 0)
             # u1Y1j+u2Y2j−(w12Z12j+w2Z2j)≤0  
-            P3[j] = m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - (w[1] * Z1TO3[j] + w[2] * Z2TO3[j]) <= 0)
+            P3[j] = m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - (w[1] * Z1_2[j] + w[2] * Z2[j]) <= 0)
             # ## 分子大於零
             # m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] >= THRESHOLD)
             # m.addConstr(w[0] * Z1to2[j] + w[1] * Z1to3[j] >= THRESHOLD)
@@ -128,13 +128,13 @@ def solve(df, DMU, NAME="temp"):
         sols[k] = m.x
 
         # 計算各process的效率值
-        val_p1[k] = safe_div((w_sol[0]*Z1TO2[k] + w_sol[1]*Z1TO3[k]), (v_sol[0]*X1[k] + v_sol[1]*X2_1[k]))
-        val_p2[k] = safe_div((w_sol[2]*Z2TO3[k]), (v_sol[1]*X2_2[k] + (w_sol[0])*Z1TO2[k]))
-        val_p3[k] = safe_div((u_sol[0]*Y1[k] + u_sol[1]*Y2[k]), ((w_sol[1])*Z1TO3[k] + (w_sol[2])*Z2TO3[k]))
+        val_p1[k] = safe_div((w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k]), (v_sol[0]*X1[k] + v_sol[1]*X2_1[k]))
+        val_p2[k] = safe_div((w_sol[2]*Z2[k]), (v_sol[1]*X2_2[k] + (w_sol[0])*Z1_1[k]))
+        val_p3[k] = safe_div((u_sol[0]*Y1[k] + u_sol[1]*Y2[k]), ((w_sol[1])*Z1_2[k] + (w_sol[2])*Z2[k]))
         
         # 計算各stage的效率值
-        val_s1[k] = safe_div((w_sol[0]*Z1TO2[k] + w_sol[1]*Z1TO3[k] + v_sol[1]*X2_2[k]), (v_sol[0]*X1[k] + v_sol[1]*X2[k]))
-        val_s2[k] = safe_div((w_sol[1]*Z1TO3[k] + w_sol[2]*Z2TO3[k]), (w_sol[0]*Z1TO2[k] + w_sol[1]*Z1TO3[k] + v_sol[1]*X2_2[k]))
+        val_s1[k] = safe_div((w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] + v_sol[1]*X2_2[k]), (v_sol[0]*X1[k] + v_sol[1]*X2[k]))
+        val_s2[k] = safe_div((w_sol[1]*Z1_2[k] + w_sol[2]*Z2[k]), (w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] + v_sol[1]*X2_2[k]))
         val_s3[k] = val_p3[k]
 
         #顯示各process的無效率值
@@ -210,12 +210,12 @@ def solve(df, DMU, NAME="temp"):
             m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (v[0] * X1[j] + v[1] * X2[j]) <= 0)
             # (w11Z11j+w12Z12j−w_0^1 )−
             #   (v1X1j+v2X21j)≤0 
-            P1[j] = m.addConstr((w[0] * Z1TO2[j] + w[1] * Z1TO3[j] - w_0[0]) - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
+            P1[j] = m.addConstr((w[0] * Z1_1[j] + w[1] * Z1_2[j] - w_0[0]) - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
             # w2Z2j−w_0^2−(v2X22j+w11Z11j−w_0^1 )≤0 
-            P2[j] = m.addConstr((w[2] * Z2TO3[j] - w_0[1]) - (v[1] * X2_2[j] + w[0] * Z1TO2[j] - w_0[0]) <= 0)
+            P2[j] = m.addConstr((w[2] * Z2[j] - w_0[1]) - (v[1] * X2_2[j] + w[0] * Z1_1[j] - w_0[0]) <= 0)
             # (u1Y1j+u2Y2j−u0)−
             #   (w12Z12j−w_0^1+w2Z2j−w_0^2 )≤0
-            P3[j] = m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (w[1] * Z1TO3[j] - w_0[0] + w[2] * Z2TO3[j] - w_0[1]) <= 0)
+            P3[j] = m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (w[1] * Z1_2[j] - w_0[0] + w[2] * Z2[j] - w_0[1]) <= 0)
             # ## 分子大於零
             # m.addConstr(u[0] * Y1[j] + u[1] * Y2[j] - u_0[0] >= THRESHOLD)
             # m.addConstr(w[0] * Z1TO2[j] + w[1] * Z1TO3[j] - w_0[0] >= THRESHOLD)
@@ -236,13 +236,13 @@ def solve(df, DMU, NAME="temp"):
         sols[k] = m.x
 
         # 計算各process的效率值
-        val_p1[k] = safe_div((w_sol[0]*Z1TO2[k] + w_sol[1]*Z1TO3[k] - w0_sol[0]), ((v_sol[0])*X1[k] + (v_sol[1])*X2_1[k]))
-        val_p2[k] = safe_div((w_sol[2]*Z2TO3[k] - w0_sol[1]), ((v_sol[1])*X2_2[k] + (w_sol[0])*Z1TO2[k] - w0_sol[0]))
-        val_p3[k] = safe_div((u_sol[0]*Y1[k] + u_sol[1]*Y2[k] - u0_sol[0]), (w_sol[1]*Z1TO3[k] - w0_sol[0] + w_sol[2]*Z2TO3[k] - w0_sol[1]))
+        val_p1[k] = safe_div((w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] - w0_sol[0]), ((v_sol[0])*X1[k] + (v_sol[1])*X2_1[k]))
+        val_p2[k] = safe_div((w_sol[2]*Z2[k] - w0_sol[1]), ((v_sol[1])*X2_2[k] + (w_sol[0])*Z1_1[k] - w0_sol[0]))
+        val_p3[k] = safe_div((u_sol[0]*Y1[k] + u_sol[1]*Y2[k] - u0_sol[0]), (w_sol[1]*Z1_2[k] - w0_sol[0] + w_sol[2]*Z2[k] - w0_sol[1]))
         
         # 計算各stage的效率值
-        val_s1[k] = safe_div((w_sol[0]*Z1TO2[k] + w_sol[1]*Z1TO3[k] - w0_sol[0] + v_sol[1]*X2_2[k]), (v_sol[0]*X1[k] + (v_sol[1])*X2[k]))
-        val_s2[k] = safe_div((w_sol[1]*Z1TO3[k] - w0_sol[0] + w_sol[2]*Z2TO3[k] - w0_sol[1]), (w_sol[0]*Z1TO2[k] + w_sol[1]*Z1TO3[k] - w0_sol[0] + v_sol[1]*X2_2[k]))
+        val_s1[k] = safe_div((w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] - w0_sol[0] + v_sol[1]*X2_2[k]), (v_sol[0]*X1[k] + (v_sol[1])*X2[k]))
+        val_s2[k] = safe_div((w_sol[1]*Z1_2[k] - w0_sol[0] + w_sol[2]*Z2[k] - w0_sol[1]), (w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] - w0_sol[0] + v_sol[1]*X2_2[k]))
         val_s3[k] = val_p3[k]
 
 
@@ -277,7 +277,7 @@ def solve(df, DMU, NAME="temp"):
     data_col = ["X1", "X2", "X2_1", "X2_2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"]
     data = pd.DataFrame(columns=data_col)
     for k in DMU:
-        data = data.append(pd.DataFrame(data=[[X1[k], X2[k], X2_1[k], X2_2[k], Z1[k], Z1TO2[k], Z1TO3[k], Z2TO3[k], Y1[k], Y2[k]]], columns=data_col, index=[k]))
+        data = data.append(pd.DataFrame(data=[[X1[k], X2[k], X2_1[k], X2_2[k], Z1[k], Z1_1[k], Z1_2[k], Z2[k], Y1[k], Y2[k]]], columns=data_col, index=[k]))
     data = data.append(pd.DataFrame(data=[[np.mean(data[i]) for i in data_col]], columns=data_col, index=["Avg."]))
     data = data.append(pd.DataFrame(data=[[np.std(data[i]) for i in data_col]], columns=data_col, index=["Std."]))
     with pd.ExcelWriter('/Users/tungwu/Documents/GitHub/ORA_final_project/result/final_sol/%s_sol.xlsx' % NAME) as writer:  
