@@ -24,7 +24,7 @@ As a result, we proposed a three stage network system which contains three proce
 
 Insurance company will cede their reinsurance process after they gain insurance premuim, and then use reinsurance premium as well as insurance premium to generate profit, which include underwriting profit and investment profit. Chart of work flow is shown below.<br/>
 
-![](https://i.imgur.com/Ne2WxoZ.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/network.png)
 
 ##### notations:
 X<sup>1</sup>: Insurance expenses  
@@ -62,7 +62,7 @@ Y<sup>2</sup> = 淨投資損益
 
 ## Methodology - network DEA model
 *model framwork recall:*
-![](https://i.imgur.com/Ne2WxoZ.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/network.png)
 
 ### CRS model
 
@@ -96,21 +96,21 @@ By using stage efficiency, there would be multipling relationship which
 w<sup>i</sup><sub>0</sub>: multiplier variables of process 1 and 2, i={1, 2} in this example  
 u<sup>j</sup><sub>0</sub>: multiplier variables of process 3, j={1} in this example  
 #### Formulation:
-![](https://i.imgur.com/6AsR7mE.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/vrs%20model.png)
 #### Effency estimation:
 similar to CRS model, we can get effiency of each process by
-![](https://i.imgur.com/G29Gdbv.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/vrs%20eff%20p.png)
 and we can use dummy process to get stage efficiency which is
-![](https://i.imgur.com/3QIUVEp.png)
-By using stage efficiency, there would also be multipling relationship which ![](https://i.imgur.com/cRsnRzW.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/vrs%20eff%20s.png)
+By using stage efficiency, there would also be multipling relationship which ![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/te.png)
 
 ---
 ## Example and Application
 ### Data: 2019 Nonlife insurance company
 unit: 1000 NTD
-![](https://i.imgur.com/OvCpqsW.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/data.png)
 ### Implement of CRS model
-##### ※ [source code](https://github.com/wurmen/DEA/blob/master/Network_DEA/network_dea_code.py) for complete model
+##### ※ [source code](https://github.com/wuyentung/ORA_final_project/blob/main/code/solver_final.py) for complete model
 after we colected data
 #### Import gurobipy
 ```python
@@ -232,12 +232,12 @@ with pd.ExcelWriter('result.xlsx') as writer:
 
 ### Result:
 #### 1. process efficiency
-![](https://i.imgur.com/cwoFLPD.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/result_p.png)
 
 Generally, technical efficiency follows common sence, which 富邦 and 國泰世紀 hold top 2 place. While there would be some arithmetic situations makes **technical efficiency lower than 0**, eg, TE_p2 of 和泰, which make scale efficiency hard to be interpreted. Besides, since the efficeincy decomposition in scale efficiency could be greater than one in some case.
 
 #### 2. stage efficiency
-![](https://i.imgur.com/IAXHiOm.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/result_s.png)
 
 When we decomposite efficiency by stage, we can avoid situation which make technical efficiency lower than 0, which is a **more reasonable result compare with process efficiency**. While decomposition in **scale efficiency could still greater than one** for some arithmetic evidence.
 
