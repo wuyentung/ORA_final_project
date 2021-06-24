@@ -75,19 +75,20 @@ v<sup>i</sup>: weights of inputs X<sup>1</sup>, i={1, 2, 21, 22} in this example
 u<sup>j</sup>: weights of outputs Y<sup>j</sup>, j={1, 2} in this example  
 w<sup>r</sup>: weights of intermedian inputs and outputs Z<sup>r</sup>, i={(1, 2), (1, 3), (2, 3)} in this example  
 #### Formulation:
-![](https://i.imgur.com/yCD9Dvc.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/crs%20model.png)
+
 The blue <font color="blue">P<sub>1</sub></font> which i={1, 2, 3} denotes the constraint derived from network model
 
 #### Effency estimation:
 We can get effiency of each process by
-![](https://i.imgur.com/k2x2h3o.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/crs%20eff%20p.png)
 In order to represent this network system in the form of series and parallel structures for efficiency decomposition, dummy process <font color="red">d<sub>1</sub>, d<sub>2</sub></font> is introduced below.  
-![](https://i.imgur.com/Vq5yUpx.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/eff%20network.png)
 
 Since efficiency of dummy process is always 1, we can decompose efficiency of each process by stage. See [this paper](https://www.sciencedirect.com/science/article/pii/S0377221707010077) for more clearily explanation.
-![](https://i.imgur.com/BhxItqg.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/crs%20eff%20s.png)
 By using stage efficiency, there would be multipling relationship which
-![](https://i.imgur.com/N6QFrLj.png)
+![](https://github.com/wuyentung/ORA_final_project/blob/main/fig/e.png)
 
 ### VRS input-oriented model
 *similar to CRS model, only difference is adding multiplier variables*
