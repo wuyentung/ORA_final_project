@@ -17,43 +17,46 @@ After we got the basic concepts of the network data envelopment analysis(network
 ---
 
 ## Background and Motivation
-Kao and Hwang (2008) —the first study that applies Network-DEA to the insurance field, which consists of 24 non-life insurance firms in Taiwan between 2001 and 2002. Subsequently, several scholars use the same dataset in Kao and Hwang (2008) to test new Network-DEA models.<br/>
-However, when it comes to efficiency measure in insurance industry nowadays. It’s difficult to collect similar data since <font color="red">the change in financial statement</font> is over 15 years. 
-Furthermore, network framework from Kao and Hwang (2008) should be update. <br/>
+Kao and Hwang (2008) —the first study that applies Network-DEA to the insurance field, which consists of 24 non-life insurance firms in Taiwan between 2001 and 2002. Subsequently, several scholars use the same dataset in Kao and Hwang (2008) to test new Network-DEA models.<br/><br/>
+However, when it comes to efficiency measure in insurance industry nowadays. It’s difficult to collect similar data since <font color="red">the change in financial statement</font> is over 15 years. <br/>
+Furthermore, network framework from Kao and Hwang (2008) should be update. <br/><br/>
 As a result, we proposed a three stage network system which contains three processes, **premium acquisition**, **reinsurance allocation** and **profit generation**.<br/>
+
 Insurance company will cede their reinsurance process after they gain insurance premuim, and then use reinsurance premium as well as insurance premium to generate profit, which include underwriting profit and investment profit. Chart of work flow is shown below.<br/>
+
 ![](https://i.imgur.com/Ne2WxoZ.png)
+
 ##### notations:
-$X^1$: Insurance expenses
-$X^2$: Operation expenses
-&nbsp;&nbsp;&nbsp;&nbsp; $𝑋^{21}$: 50% of 𝑋2
-&nbsp;&nbsp;&nbsp;&nbsp; $𝑋^{22}$: 50% of 𝑋2
+X<sup>1</sup>: Insurance expenses  
+X<sup>2</sup>: Operation expenses  
+&nbsp;&nbsp;&nbsp;&nbsp; X<sup>21</sup>: 50% of 𝑋2  
+&nbsp;&nbsp;&nbsp;&nbsp; X<sup>22</sup>: 50% of 𝑋2  
 
-$Z^{1,2}$: Premiums ceded to reinsurers 
-$Z^{1,3}$: Premium income minus $Z^{1,2}$
-$Z^{2,3}$: Reinsurance premiums
+Z<sup>1,2</sup>: Premiums ceded to reinsurers  
+Z<sup>1,3</sup>: Premium income minus Z<sup>1,2</sup>
+Z<sup>2,3</sup>: Reinsurance premiums  
 
-$Y^1$: Underwriting profit 
-$Y^2$: Investment profit
+Y<sup>1</sup>: Underwriting profit   
+Y<sup>2</sup>: Investment profit  
 
-$P_1$: premium acquisition process
-$P_2$: reinsurance allocation process
-$P_3$: profit generation process
+P<sub>1</sub>: premium acquisition process  
+P<sub>2</sub>: reinsurance allocation process  
+P<sub>3</sub>: profit generation process  
 
 ---
 
 ## Data Collections
 We can get datas from financial income statement which collected in [財團法人保險事業發展中心](https://www.tii.org.tw/tii/actuarial/actuarial1/report/index.html)
 #### data calculation in income statement:
-$X^1=承保費用支出+佣金費用$
-$X^2=其他營業成本+  財務成本+營業費用$
+X<sup>1</sup> = 承保費用支出 + 佣金費用  
+X<sup>2</sup> = 其他營業成本 + 財務成本 + 營業費用
 
-$Z^{1,2}=再保費支出$
-$Z^{1,3}=簽單保費收入+手續費收入-再保費支出$
-$Z^{2,3}=再保佣金收入+再保費收入$
+Z<sup>1,2</sup> = 再保費支出  
+Z<sup>1,3</sup> = 簽單保費收入 + 手續費收入 - 再保費支出  
+Z<sup>2,3</sup> = 再保佣金收入 + 再保費收入
 
-$Y^1=繼續營業單位稅前純益（損益）-營業外收入費用-淨投資損益$
-$Y^2=淨投資損益$
+Y<sup>1</sup> = 繼續營業單位稅前純益（損益）- 營業外收入費用 - 淨投資損益  
+Y<sup>2</sup> = 淨投資損益
 
 ---
 
@@ -64,32 +67,33 @@ $Y^2=淨投資損益$
 ### CRS model
 
 #### Notations
-$n:$ decision unit in nonlife companies
-$k:$ modeling decision unit in nonlife company
-$ε：$ non-Archimedean constant, in this case is $10^{-11}$
+n: decision unit in nonlife companies
+k: modeling decision unit in nonlife company
+ε： non-Archimedean constant, in this case is 10<sup>-11</sup>
 #### Decision variables:
-$v^i$: weights of inputs $X^i$, $i={1, 2, 21, 22}$ in this example
-$u^j$: weights of outputs $Y^j$, $j={1, 2}$ in this example
-$w^r$: weights of intermedian inputs and outputs $Z^r$, $i={(1, 2), (1, 3), (2, 3)}$ in this example
+v<sup>i</sup>: weights of inputs X<sup>1</sup>, i={1, 2, 21, 22} in this example  
+u<sup>j</sup>: weights of outputs Y<sup>j</sup>, j={1, 2} in this example  
+w<sup>r</sup>: weights of intermedian inputs and outputs Z<sup>r</sup>, i={(1, 2), (1, 3), (2, 3)} in this example  
 #### Formulation:
 ![](https://i.imgur.com/yCD9Dvc.png)
-The blue <font color="blue">$P_i$</font> which $i={1, 2, 3}$ denotes the constraint derived from network model
+The blue <font color="blue">P<sub>1</sub></font> which i={1, 2, 3} denotes the constraint derived from network model
 
 #### Effency estimation:
 We can get effiency of each process by
 ![](https://i.imgur.com/k2x2h3o.png)
-In order to represent this network system in the form of series and parallel structures for efficiency decomposition, dummy process <font color="red">$d_1, d_2$</font> is introduced below. 
+In order to represent this network system in the form of series and parallel structures for efficiency decomposition, dummy process <font color="red">d<sub>1</sub>, d<sub>2</sub></font> is introduced below.  
 ![](https://i.imgur.com/Vq5yUpx.png)
 
 Since efficiency of dummy process is always 1, we can decompose efficiency of each process by stage. See [this paper](https://www.sciencedirect.com/science/article/pii/S0377221707010077) for more clearily explanation.
 ![](https://i.imgur.com/BhxItqg.png)
-By using stage efficiency, there would be multipling relationship which <font color="red">$E_k=E^I_k*E^{II}_k*E^{III}_k$</font>
+By using stage efficiency, there would be multipling relationship which
+![](https://i.imgur.com/N6QFrLj.png)
 
 ### VRS input-oriented model
 *similar to CRS model, only difference is adding multiplier variables*
 #### Decision variables:
-$w^i_0$: multiplier variables of process 1 and 2, $i={1, 2}$ in this example
-$u^j_0$: multiplier variables of process 3, $j={1}$ in this example
+w<sup>i</sup><sub>0</sub>: multiplier variables of process 1 and 2, i={1, 2} in this example  
+u<sup>j</sup><sub>0</sub>: multiplier variables of process 3, j={1} in this example  
 #### Formulation:
 ![](https://i.imgur.com/6AsR7mE.png)
 #### Effency estimation:
@@ -97,7 +101,7 @@ similar to CRS model, we can get effiency of each process by
 ![](https://i.imgur.com/G29Gdbv.png)
 and we can use dummy process to get stage efficiency which is
 ![](https://i.imgur.com/3QIUVEp.png)
-By using stage efficiency, there would also be multipling relationship which <font color="red">$T_k=T^I_k*T^{II}_k*T^{III}_k$</font>
+By using stage efficiency, there would also be multipling relationship which ![](https://i.imgur.com/cRsnRzW.png)
 
 ---
 ## Example and Application
