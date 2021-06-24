@@ -29,9 +29,8 @@ def crs_solver(dmu, X1, X2, X2_1, X2_2, Z1_2, Z1_3, Z2_3, Y1, Y2, THRESHOLD=0.00
     for k in dmu:
         P1,P2,P3={},{},{}
         v, u, w = {}, {}, {}
-        # w_0, u_0 = {}, {}
 
-        m = gp.Model("network_DEA_VRS")
+        m = gp.Model("network_DEA_CRS")
 
         for i in range(I):
             v[i]=m.addVar(vtype=gp.GRB.CONTINUOUS,name="v_%d"%i, 
