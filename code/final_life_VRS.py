@@ -48,9 +48,9 @@ X2_1 = make_dict((((np.array(life.iloc[[2]]).T + np.array(life.iloc[[3]]).T + np
 X2_2 = X2_1
 
 Z1 = make_dict((np.array(life.iloc[[5]]).T + np.array(life.iloc[[6]]).T).tolist())
-Z1_1 = make_dict((np.array(life.iloc[[7]]).T).tolist())
-Z1_2 = make_dict((np.array(life.iloc[[5]]).T + np.array(life.iloc[[6]]).T - np.array(life.iloc[[7]]).T).tolist())
-Z2 = make_dict((np.array(life.iloc[[8]]).T + np.array(life.iloc[[9]]).T).tolist())
+Z1_2 = make_dict((np.array(life.iloc[[7]]).T).tolist())
+Z1_3 = make_dict((np.array(life.iloc[[5]]).T + np.array(life.iloc[[6]]).T - np.array(life.iloc[[7]]).T).tolist())
+Z2_3 = make_dict((np.array(life.iloc[[8]]).T + np.array(life.iloc[[9]]).T).tolist())
 
 Y1 = make_dict((np.array(life.iloc[[11]]).T).tolist(), y=True)
 Y2 = make_dict((np.array(life.iloc[[10]]).T).tolist(), y=True)
@@ -107,12 +107,12 @@ for k in DMU:
         m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (v[0] * X1[j] + v[1] * X2[j]) <= 0)
         # (w11Z11j+w12Z12j−w_0^1 )−
         #   (v1X1j+v2X21j)≤0 
-        P1[j] = m.addConstr((w[0] * Z1_1[j] + w[1] * Z1_2[j] - w_0[0]) - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
+        P1[j] = m.addConstr((w[0] * Z1_2[j] + w[1] * Z1_3[j] - w_0[0]) - (v[0] * X1[j] + v[1] * X2_1[j]) <= 0)
         # w2Z2j−w_0^2−(v2X22j+w11Z11j−w_0^1 )≤0 
-        P2[j] = m.addConstr((w[2] * Z2[j] - w_0[1]) - (v[1] * X2_2[j] + w[0] * Z1_1[j] - w_0[0]) <= 0)
+        P2[j] = m.addConstr((w[2] * Z2_3[j] - w_0[1]) - (v[1] * X2_2[j] + w[0] * Z1_2[j] - w_0[0]) <= 0)
         # (u1Y1j+u2Y2j−u0)−
         #   (w12Z12j−w_0^1+w2Z2j−w_0^2 )≤0
-        P3[j] = m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (w[1] * Z1_2[j] - w_0[0] + w[2] * Z2[j] - w_0[1]) <= 0)
+        P3[j] = m.addConstr((u[0] * Y1[j] + u[1] * Y2[j] - u_0[0]) - (w[1] * Z1_3[j] - w_0[0] + w[2] * Z2_3[j] - w_0[1]) <= 0)
     m.optimize()
     # m.write("VRS_Z1split.lp")
     # m.write("VRS_Z1split.mps")
@@ -133,13 +133,13 @@ for k in DMU:
     # val_p1[k] = (w_sol[0] * Z1_1[k] + w_sol[1] * Z1_2[k] - w0_sol[0]) / (v_sol[0] * X1[k] + v_sol[1] * X2_1[k])
     # val_p2[k] = (w_sol[2] * Z2[k] - w0_sol[1]) / (v_sol[1] * X2_2[k] + w_sol[0] * Z1_1[k] - w0_sol[0])
     # val_p3[k] = (u_sol[0] * Y1[k] + u_sol[1] * Y2[k] - u0_sol[0]) / (w_sol[1] * Z1_2[k] - w0_sol[0] + w_sol[2] * Z2[k] - w0_sol[1])
-    val_p1[k] = safe_div((w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] - w0_sol[0]), ((v_sol[0])*X1[k] + (v_sol[1])*X2_1[k]))
-    val_p2[k] = safe_div((w_sol[2]*Z2[k] - w0_sol[1]), ((v_sol[1])*X2_2[k] + (w_sol[0])*Z1_1[k] - w0_sol[0]))
-    val_p3[k] = safe_div((u_sol[0]*Y1[k] + u_sol[1]*Y2[k] - u0_sol[0]), (w_sol[1]*Z1_2[k] - w0_sol[0] + w_sol[2]*Z2[k] - w0_sol[1]))
+    val_p1[k] = safe_div((w_sol[0]*Z1_2[k] + w_sol[1]*Z1_3[k] - w0_sol[0]), ((v_sol[0])*X1[k] + (v_sol[1])*X2_1[k]))
+    val_p2[k] = safe_div((w_sol[2]*Z2_3[k] - w0_sol[1]), ((v_sol[1])*X2_2[k] + (w_sol[0])*Z1_2[k] - w0_sol[0]))
+    val_p3[k] = safe_div((u_sol[0]*Y1[k] + u_sol[1]*Y2[k] - u0_sol[0]), (w_sol[1]*Z1_3[k] - w0_sol[0] + w_sol[2]*Z2_3[k] - w0_sol[1]))
     
     # 計算各stage的效率值
-    val_s1[k] = safe_div((w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] - w0_sol[0] + v_sol[1]*X2_2[k]), (v_sol[0]*X1[k] + (v_sol[1])*X2[k]))
-    val_s2[k] = safe_div((w_sol[1]*Z1_2[k] - w0_sol[0] + w_sol[2]*Z2[k] - w0_sol[1]), (w_sol[0]*Z1_1[k] + w_sol[1]*Z1_2[k] - w0_sol[0] + v_sol[1]*X2_2[k]))
+    val_s1[k] = safe_div((w_sol[0]*Z1_2[k] + w_sol[1]*Z1_3[k] - w0_sol[0] + v_sol[1]*X2_2[k]), (v_sol[0]*X1[k] + (v_sol[1])*X2[k]))
+    val_s2[k] = safe_div((w_sol[1]*Z1_3[k] - w0_sol[0] + w_sol[2]*Z2_3[k] - w0_sol[1]), (w_sol[0]*Z1_2[k] + w_sol[1]*Z1_3[k] - w0_sol[0] + v_sol[1]*X2_2[k]))
     val_s3[k] = val_p3[k]
 
 
@@ -166,7 +166,7 @@ sol_df
 data_col = ["X1", "X2", "X2_1", "X2_2", "Z1", "Z1_1", "Z1_2", "Z2", "Y1", "Y2"]
 data = pd.DataFrame(columns=data_col)
 for k in DMU:
-    data = data.append(pd.DataFrame(data=[[X1[k], X2[k], X2_1[k], X2_2[k], Z1[k], Z1_1[k], Z1_2[k], Z2[k], Y1[k], Y2[k]]], columns=data_col, index=[k]))
+    data = data.append(pd.DataFrame(data=[[X1[k], X2[k], X2_1[k], X2_2[k], Z1[k], Z1_2[k], Z1_3[k], Z2_3[k], Y1[k], Y2[k]]], columns=data_col, index=[k]))
 data
 # data.to_excel("data_local.xlsx")
 #%%

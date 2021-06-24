@@ -25,5 +25,5 @@ DMU.remove("美國國際")
 DMU.remove("亞洲")
 # solver.solve(df=nonlife, DMU=DMU, NAME="nonlife_2019")
 # solver_VRSsep.solve(df=life, DMU=DMU, NAME="nonlife_2019")
-solver_final.solve(df=life, DMU=DMU, NAME="nonlife_2019")
+solver_final.solve(df=nonlife, DMU=DMU, NAME="nonlife_2019")
 #%%
